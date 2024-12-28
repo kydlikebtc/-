@@ -16,6 +16,21 @@ export const config = {
       baseUrl: 'https://open-api.coinglass.com',
       apiKey: process.env.COINGLASS_API_KEY
     },
+    tradingview: {
+      baseUrl: 'https://api.tradingview.com',
+      apiKey: process.env.TRADINGVIEW_API_KEY
+    },
+    blockchaincenter: {
+      baseUrl: 'https://api.blockchaincenter.net',
+      apiKey: process.env.BLOCKCHAINCENTER_API_KEY
+    },
+    microstrategy: {
+      baseUrl: 'https://api.microstrategy.com'
+    },
+    prediction: {
+      baseUrl: 'https://api.prediction-service.com',
+      apiKey: process.env.PREDICTION_API_KEY
+    },
     binance: {
       baseUrl: 'https://api.binance.com',
       apiKey: process.env.BINANCE_API_KEY,

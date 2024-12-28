@@ -24,7 +24,9 @@ export class GlassnodeProvider {
       rhodl: '/v1/metrics/indicators/rhodl_ratio',
       puell: '/v1/metrics/indicators/puell_multiple',
       reserveRisk: '/v1/metrics/indicators/reserve_risk',
-      mvrv: '/v1/metrics/market/mvrv_z_score'
+      mvrv: '/v1/metrics/market/mvrv_z_score',
+      stHolderSupply: '/v1/metrics/supply/short_term_holder_supply',
+      ltHolderOutflow: '/v1/metrics/transactions/long_term_holder_outflow'
     };
 
     try {
@@ -33,7 +35,9 @@ export class GlassnodeProvider {
         rhodl: 0,
         puell: 0,
         reserveRisk: 0,
-        mvrv: 0
+        mvrv: 0,
+        stHolderSupply: 0,
+        ltHolderOutflow: 0
       };
       
       for (const [key, endpoint] of Object.entries(endpoints)) {

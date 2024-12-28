@@ -1,16 +1,12 @@
+import { IIndicator } from '../types/indicator';
+
+export interface IValidationResult {
+  isValid: boolean;
+  errors: string[];
+}
+
 export class Validator {
-  static validateIndicator(data: {
-    id: number;
-    category: string;
-    nameZh: string;
-    nameEn: string;
-    currentValue: number;
-    targetValue: string;
-    principle: string;
-    calculation: string;
-    usage: string;
-    dataSource: string;
-  }): void {
+  static validateIndicator(data: IIndicator): void {
     if (data.id < 0) {
       throw new Error('Invalid ID');
     }
