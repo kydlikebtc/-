@@ -1,0 +1,18 @@
+Files Processed:
+- [x] backend/src/index.ts - Updated imports and removed duplicates
+- [x] backend/src/services/dataProviders/GlassnodeProvider.ts - Fixed TypeScript errors and import paths
+- [x] backend/src/services/dataProviders/CoinglassProvider.ts - Fixed TypeScript errors and import paths
+- [x] backend/src/models/Indicator.ts - Created with correct structure
+- [x] backend/src/models/IndicatorHistory.ts - Created with correct structure
+- [x] backend/src/services/DataUpdateService.ts - Created with correct imports
+- [x] backend/src/controllers/IndicatorController.ts - Created with correct structure
+- [x] backend/src/routes/index.ts - Created with correct routing
+- [x] backend/src/config/index.ts - Created with configuration
+- [x] frontend/src/types/index.ts - Created type definitions
+- [x] frontend/src/api/index.ts - Created API interfaces
+- [x] frontend/src/components/IndicatorChart.tsx - Created component
+- [x] frontend/src/components/IndicatorTable.tsx - Created component
+- [x] frontend/src/components/ui/card.tsx - Created UI component
+- [x] frontend/src/components/ui/alert.tsx - Created UI component
+- [x] frontend/src/components/ui/table.tsx - Created UI component
+- [x] frontend/src/pages/overview.tsx - Updated with new components
