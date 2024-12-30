@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@types/express-rate-limit": "^6.0.2",
     "@types/jsonwebtoken": "^9.0.7",
-    "@types/mongoose": "^5.11.97",
     "@types/nodemailer": "^6.4.17",
     "axios": "^1.7.9",
     "cors": "^2.8.5",
@@ -35,6 +33,7 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.2",
     "@types/node-schedule": "^2.1.7",
+    "@types/mongoose": "^5.11.97",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
     "@typescript-eslint/parser": "^8.18.2",
     "eslint": "^8.56.0",
