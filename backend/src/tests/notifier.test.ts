@@ -82,7 +82,7 @@ describe('Notifier', () => {
     it('should send DingDing message successfully', async () => {
       const message = 'This is a test message';
       
-      await notifier.sendDingDing(message);
+      await notifier.sendDingDing('Test Alert', message);
       
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining('DingDing message sent successfully')
@@ -95,7 +95,7 @@ describe('Notifier', () => {
 
       const message = 'This is a test message';
       
-      await expect(notifier.sendDingDing(message))
+      await expect(notifier.sendDingDing('Test Alert', message))
         .rejects.toThrow('Failed to send DingDing message');
       
       expect(logger.error).toHaveBeenCalled();
@@ -106,7 +106,7 @@ describe('Notifier', () => {
     it('should send WeCom message successfully', async () => {
       const message = 'This is a test message';
       
-      await notifier.sendWecom(message);
+      await notifier.sendWecom('Test Alert', message);
       
       expect(logger.info).toHaveBeenCalledWith(
         expect.stringContaining('WeCom message sent successfully')
@@ -119,7 +119,7 @@ describe('Notifier', () => {
 
       const message = 'This is a test message';
       
-      await expect(notifier.sendWecom(message))
+      await expect(notifier.sendWecom('Test Alert', message))
         .rejects.toThrow('Failed to send WeCom message');
       
       expect(logger.error).toHaveBeenCalled();
@@ -165,10 +165,14 @@ describe('Notifier', () => {
         currentValue: 0.8,
         targetValue: 0.75,
         category: 'On-chain',
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        principle: 'Net Unrealized Profit/Loss principle',
+        calculation: 'NUPL calculation method',
+        usage: 'Market sentiment analysis',
+        dataSource: 'Glassnode'
       };
 
-      await anomalyService.detectAnomalies(indicator);
+      await anomalyService.detectAnomalies([indicator]);
 
       // Verify notifications were sent
       const mockSendMail = require('nodemailer').createTransport().sendMail;

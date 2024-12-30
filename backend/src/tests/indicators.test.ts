@@ -4,7 +4,7 @@ import { Security } from '../utils/security';
 import { describe, test, expect, jest } from '@jest/globals';
 import { IIndicator } from '../types/indicator';
 import { TradingViewProvider } from '../services/dataProviders/TradingViewProvider';
-import { TradingViewRawData, BlockchainCenterRawData, MicroStrategyRawData, PredictionRawData } from '../types/data';
+// Removed unused imports
 import { BlockchainCenterProvider } from '../services/dataProviders/BlockchainCenterProvider';
 import { MicroStrategyProvider } from '../services/dataProviders/MicroStrategyProvider';
 import { PredictionProvider } from '../services/dataProviders/PredictionProvider';

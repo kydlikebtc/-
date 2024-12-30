@@ -1,8 +1,6 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import nodemailer from 'nodemailer';
 import logger from './logger';
-import { join } from 'path';
-import { mkdirSync } from 'fs';
 
 interface NotificationResult {
   channel: 'email' | 'dingding' | 'wecom';
@@ -17,7 +15,7 @@ export class Notifier {
   private readonly maxRetries = 3;
   private readonly retryDelay = 1000; // 1 second
 
-  private constructor() {
+  constructor() {
     this.validateEnvVars();
     this.initializeEmail();
     this.initializeWebhooks();
@@ -102,7 +100,7 @@ export class Notifier {
     }
   }
 
-  async sendDingDing(message: string): Promise<NotificationResult> {
+  async sendDingDing(title: string, message: string): Promise<NotificationResult> {
     try {
       const webhookUrl = this.webhookUrls.get('dingding');
       if (!webhookUrl) {
@@ -113,7 +111,7 @@ export class Notifier {
         await axios.post(webhookUrl, {
           msgtype: 'markdown',
           markdown: {
-            title: '市场指标预警',
+            title: title || '市场指标预警',
             text: message
           }
         });
@@ -122,15 +120,15 @@ export class Notifier {
       logger.info('DingDing notification sent successfully');
       return { channel: 'dingding', success: true };
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? `${error.message} (${error.response?.status})` 
-        : error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error 
+        ? `${error.message}${(error as any).response?.status ? ` (${(error as any).response.status})` : ''}`
+        : 'Unknown error';
       logger.error('Failed to send DingDing notification:', { error: errorMessage });
       return { channel: 'dingding', success: false, error: errorMessage };
     }
   }
 
-  async sendWecom(message: string): Promise<NotificationResult> {
+  async sendWecom(title: string, message: string): Promise<NotificationResult> {
     try {
       const webhookUrl = this.webhookUrls.get('wecom');
       if (!webhookUrl) {
@@ -141,7 +139,7 @@ export class Notifier {
         await axios.post(webhookUrl, {
           msgtype: 'markdown',
           markdown: {
-            content: message
+            content: `**${title}**\n${message}`
           }
         });
       }, 'wecom');
@@ -149,9 +147,9 @@ export class Notifier {
       logger.info('WeCom notification sent successfully');
       return { channel: 'wecom', success: true };
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? `${error.message} (${error.response?.status})` 
-        : error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error 
+        ? `${error.message}${(error as any).response?.status ? ` (${(error as any).response.status})` : ''}`
+        : 'Unknown error';
       logger.error('Failed to send WeCom notification:', { error: errorMessage });
       return { channel: 'wecom', success: false, error: errorMessage };
     }
@@ -173,6 +171,14 @@ export class Notifier {
     }
   }
 
+  async sendAlert(title: string, message: string): Promise<NotificationResult[]> {
+    return this.notifyAll(title, message);
+  }
+
+  async sendNotification(payload: { title: string; message: string; level: string }): Promise<NotificationResult[]> {
+    return this.notifyAll(payload.title, payload.message);
+  }
+
   async notifyAll(title: string, message: string): Promise<NotificationResult[]> {
     const results: NotificationResult[] = [];
     const alertEmail = process.env.ALERT_EMAIL;
@@ -184,14 +190,14 @@ export class Notifier {
       // Add email notification if configured
       if (alertEmail) {
         notificationPromises.push(
-          this.sendEmail(alertEmail, title, this.formatMessage(title, message, 'email'))
+          this.sendEmail(title, this.formatMessage(title, message, 'email'))
         );
       }
 
       // Add DingDing notification if configured
       if (this.webhookUrls.has('dingding')) {
         notificationPromises.push(
-          this.sendDingDing(this.formatMessage(title, message, 'dingding'))
+          this.sendDingDing(title, this.formatMessage(title, message, 'dingding'))
         );
       }
 
@@ -199,7 +205,7 @@ export class Notifier {
       // Add WeCom notification if configured
       if (this.webhookUrls.has('wecom')) {
         notificationPromises.push(
-          this.sendWecom(this.formatMessage(title, message, 'wecom'))
+          this.sendWecom(title, this.formatMessage(title, message, 'wecom'))
         );
       }
 

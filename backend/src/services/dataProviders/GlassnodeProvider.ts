@@ -37,7 +37,9 @@ export class GlassnodeProvider {
         reserveRisk: 0,
         mvrv: 0,
         stHolderSupply: 0,
-        ltHolderOutflow: 0
+        ltHolderOutflow: 0,
+        bubbleIndex: 0,
+        mvrvRatio: 0
       };
       
       for (const [key, endpoint] of Object.entries(endpoints)) {

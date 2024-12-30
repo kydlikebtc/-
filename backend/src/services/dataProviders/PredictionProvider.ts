@@ -6,36 +6,66 @@ import { IDataProvider } from '../../types/provider';
 import { IIndicator } from '../../types/indicator';
 
 export class PredictionProvider implements IDataProvider {
-  public transformData(rawData: PredictionRawData): IIndicator[] {
+  public transformData(rawData: PredictionData): IIndicator[] {
     const indicators: IIndicator[] = [];
     const now = new Date();
 
-    if (rawData.fearGreedIndex !== undefined) {
+    if (rawData.piCycleTop !== undefined) {
       indicators.push({
         id: 8,
-        nameEn: 'Fear & Greed Index',
-        nameZh: '恐惧贪婪指数',
-        currentValue: rawData.fearGreedIndex,
+        nameEn: 'PI Cycle Top',
+        nameZh: 'PI周期顶部',
+        currentValue: rawData.piCycleTop,
         category: 'Sentiment',
         updatedAt: now,
-        principle: 'Measures market sentiment',
-        calculation: 'Composite of various metrics',
-        usage: 'Gauge market psychology',
-        dataSource: 'Alternative.me'
+        principle: 'Identifies market cycle tops',
+        calculation: 'Moving average crossovers',
+        usage: 'Market top prediction',
+        dataSource: 'Prediction Provider'
       });
     }
 
-    if (rawData.marketSentiment !== undefined) {
+    if (rawData.sminstonForecast !== undefined) {
       indicators.push({
         id: 9,
-        nameEn: 'Market Sentiment',
-        nameZh: '市场情绪',
-        currentValue: rawData.marketSentiment * 100,
+        nameEn: 'Sminston Forecast',
+        nameZh: 'Sminston预测',
+        currentValue: rawData.sminstonForecast,
         category: 'Sentiment',
         updatedAt: now,
-        principle: 'Measures overall market mood',
-        calculation: 'Weighted average of signals',
-        usage: 'Identify extreme sentiment',
+        principle: 'Price prediction model',
+        calculation: 'Machine learning forecast',
+        usage: 'Price trend prediction',
+        dataSource: 'Prediction Provider'
+      });
+    }
+
+    if (rawData.goldBtcRatio !== undefined) {
+      indicators.push({
+        id: 10,
+        nameEn: 'Gold/BTC Ratio',
+        nameZh: '黄金/BTC比率',
+        currentValue: rawData.goldBtcRatio,
+        category: 'Sentiment',
+        updatedAt: now,
+        principle: 'Compares BTC to gold',
+        calculation: 'Gold price / BTC price',
+        usage: 'Store of value analysis',
+        dataSource: 'Prediction Provider'
+      });
+    }
+
+    if (rawData.pricePrediction !== undefined) {
+      indicators.push({
+        id: 11,
+        nameEn: 'Price Prediction',
+        nameZh: '价格预测',
+        currentValue: rawData.pricePrediction,
+        category: 'Sentiment',
+        updatedAt: now,
+        principle: 'Short-term price forecast',
+        calculation: 'Technical analysis model',
+        usage: 'Trading signal generation',
         dataSource: 'Prediction Provider'
       });
     }
