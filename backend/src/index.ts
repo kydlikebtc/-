@@ -16,19 +16,27 @@ app.use(express.json());
 // Routes
 app.use('/api', routes);
 
-// Database connection
-mongoose.connect(config.mongodb.uri)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// Database connection (optional for now)
+if (config.mongodb?.uri) {
+  mongoose.connect(config.mongodb.uri)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('MongoDB connection error:', err));
+} else {
+  console.log('MongoDB URI not provided, skipping database connection');
+}
 
-// Schedule updates
-schedule.scheduleJob(config.update.interval, async () => {
-  try {
-    await dataUpdateService.updateAllIndicators();
-  } catch (error) {
-    console.error('Scheduled update failed:', error);
-  }
-});
+// Schedule updates (if database is connected)
+if (mongoose.connection.readyState === 1) {
+  schedule.scheduleJob(config.update.interval, async () => {
+    try {
+      await dataUpdateService.updateAllIndicators();
+    } catch (error) {
+      console.error('Scheduled update failed:', error);
+    }
+  });
+} else {
+  console.log('Database not connected, skipping scheduled updates');
+}
 
 // Health check endpoint
 app.get('/health', (_req, res) => {
