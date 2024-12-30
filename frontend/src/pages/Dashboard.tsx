@@ -1,37 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, AlertDescription } from '../components/ui/alert';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { IndicatorTable } from '../components/IndicatorTable';
 import { IndicatorChart } from '../components/IndicatorChart';
-import { fetchIndicators } from '../api';
 import type { Indicator } from '../types/indicator';
 import { generateTestIndicators } from '../utils/testData';
 
 const Dashboard = () => {
   const [indicators, setIndicators] = useState<Indicator[]>(() => generateTestIndicators(30));
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const data = await fetchIndicators();
-        setIndicators(data);
-      } catch {
-        setError('Failed to load indicators');
-      } finally {
-        setLoading(false);
-      }
+    // For development, use test data and simulate updates
+    const simulateDataUpdate = () => {
+      setIndicators(generateTestIndicators(30));
+      setLoading(false);
     };
 
-    loadData();
-    // Refresh data every 5 minutes
-    const interval = setInterval(loadData, 5 * 60 * 1000);
+    simulateDataUpdate();
+    // Refresh test data every 5 minutes to simulate updates
+    const interval = setInterval(simulateDataUpdate, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>;
 
   return (
     <div className="space-y-6">

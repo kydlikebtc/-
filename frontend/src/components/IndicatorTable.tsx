@@ -25,7 +25,7 @@ export const IndicatorTable: React.FC<IndicatorTableProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<IndicatorCategory | ''>('');
 
   const filteredAndSortedIndicators = useMemo(() => {
-    let result = selectedCategory
+    const result = selectedCategory
       ? indicators.filter(i => i.category === selectedCategory)
       : indicators;
 
