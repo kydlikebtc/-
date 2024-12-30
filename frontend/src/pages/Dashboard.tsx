@@ -5,9 +5,10 @@ import { IndicatorTable } from '../components/IndicatorTable';
 import { IndicatorChart } from '../components/IndicatorChart';
 import { fetchIndicators } from '../api';
 import type { Indicator } from '../types/indicator';
+import { generateTestIndicators } from '../utils/testData';
 
 const Dashboard = () => {
-  const [indicators, setIndicators] = useState<Indicator[]>([]);
+  const [indicators, setIndicators] = useState<Indicator[]>(() => generateTestIndicators(30));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +43,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="stats-card">
               <h3>已触发指标</h3>
-              <p>{indicators.filter(i => i.currentValue >= i.targetValue).length}</p>
+              <p>{indicators.filter(i => i.currentValue >= (i.targetValue ?? 0)).length}</p>
               <p>共 {indicators.length} 个</p>
             </div>
             <div className="stats-card">
@@ -58,7 +59,11 @@ const Dashboard = () => {
           <CardTitle>指标详情</CardTitle>
         </CardHeader>
         <CardContent>
-          <IndicatorTable indicators={indicators} />
+          <div className="max-h-[calc(100vh-24rem)] overflow-auto">
+            <div className="min-w-full">
+              <IndicatorTable indicators={indicators} />
+            </div>
+          </div>
         </CardContent>
       </Card>
 

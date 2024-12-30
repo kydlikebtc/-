@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from './ui/table';
-import type { Indicator } from '../types';
+import type { Indicator, IndicatorCategory } from '../types';
 import { INDICATOR_CATEGORIES } from '../types/indicator';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
@@ -15,15 +15,14 @@ import { formatValue } from '../utils';
 
 interface IndicatorTableProps {
   indicators: Indicator[];
-  selectedCategory?: string;
 }
 
 export const IndicatorTable: React.FC<IndicatorTableProps> = ({ 
-  indicators,
-  selectedCategory 
+  indicators 
 }) => {
   const [sortField, setSortField] = useState<keyof Indicator>('id');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedCategory, setSelectedCategory] = useState<IndicatorCategory | ''>('');
 
   const filteredAndSortedIndicators = useMemo(() => {
     let result = selectedCategory
@@ -75,8 +74,22 @@ export const IndicatorTable: React.FC<IndicatorTableProps> = ({
           <TableHead onClick={() => handleSort('id')} className="cursor-pointer">
             序号 {renderSortIcon('id')}
           </TableHead>
-          <TableHead onClick={() => handleSort('category')} className="cursor-pointer">
-            分类 {renderSortIcon('category')}
+          <TableHead>
+            <div className="flex items-center space-x-2">
+              <span onClick={() => handleSort('category')} className="cursor-pointer">
+                分类 {renderSortIcon('category')}
+              </span>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value as IndicatorCategory | '')}
+                className="ml-2 text-sm border rounded-md p-1"
+              >
+                <option value="">全部</option>
+                {INDICATOR_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
           </TableHead>
           <TableHead onClick={() => handleSort('nameZh')} className="cursor-pointer">
             指标名称 {renderSortIcon('nameZh')}
