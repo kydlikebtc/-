@@ -233,14 +233,46 @@ interface INotificationPayload {
 }
 
 export class AnomalyDetectionService {
-  constructor(private notifier: Notifier) {}
+  private readonly notifier: Notifier;
+
+  constructor(notifier?: Notifier) {
+    this.notifier = notifier || Notifier.getInstance();
+  }
 
   public async detectAnomalies(indicators: IIndicator[]): Promise<IAnomaly[]> {
     const anomalies: IAnomaly[] = [];
     
     for (const indicator of indicators) {
+      const threshold = INDICATOR_THRESHOLDS.find(t => t.id === indicator.id);
+      if (!threshold) continue;
+
+      // Check for threshold breach
       if (this.isThresholdBreach(indicator)) {
         anomalies.push(this.createAnomaly('THRESHOLD_BREACH', indicator));
+      }
+
+      // Convert values to numbers, handling percentage values
+      const currentValue = this.parseValue(indicator.currentValue);
+      const targetValue = this.parseValue(threshold.targetValue);
+
+      if (currentValue === null || targetValue === null) continue;
+
+      let isAnomaly = false;
+      switch (threshold.comparison) {
+        case 'gte':
+          isAnomaly = currentValue >= targetValue;
+          break;
+        case 'lte':
+          isAnomaly = currentValue <= targetValue;
+          break;
+        case 'eq':
+          isAnomaly = Math.abs(currentValue - targetValue) < 0.0001;
+          break;
+      }
+
+      if (isAnomaly) {
+        await this.notifyAnomaly(indicator, threshold);
+        anomalies.push(this.createAnomaly('THRESHOLD_COMPARISON', indicator));
       }
     }
     
@@ -273,6 +305,70 @@ export class AnomalyDetectionService {
         message: this.formatAnomalyMessage(anomaly),
         level: anomaly.severity
       });
+    }
+  }
+
+  public async detectTrends(indicator: IIndicator, history: IIndicatorHistory[]): Promise<void> {
+    if (history.length < 2) return;
+
+    const threshold = INDICATOR_THRESHOLDS.find(t => t.id === indicator.id);
+    if (!threshold) return;
+
+    // Sort history by timestamp in ascending order
+    const sortedHistory = [...history].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    
+    // Convert and validate values
+    const latestValue = this.parseValue(sortedHistory[sortedHistory.length - 1].value);
+    const previousValue = this.parseValue(sortedHistory[sortedHistory.length - 2].value);
+    
+    if (latestValue === null || previousValue === null) return;
+
+    // Calculate rate of change
+    const rateOfChange = ((latestValue - previousValue) / previousValue) * 100;
+
+    // Detect rapid changes (more than 10% in either direction)
+    if (Math.abs(rateOfChange) > 10) {
+      const direction = rateOfChange > 0 ? '上升' : '下降';
+      const rapidChangeMessage = [
+        `${threshold.nameZh} (${threshold.nameEn}) 快速${direction}预警`,
+        `指标: ${threshold.nameZh} (${threshold.nameEn})`,
+        `分类: ${threshold.category}`,
+        `变化: ${Math.abs(rateOfChange).toFixed(2)}%`,
+        `原理: ${threshold.principle}`,
+        `当前值: ${indicator.currentValue}`,
+        `目标值: ${threshold.targetValue}`,
+        `时间: ${new Date().toISOString()}`
+      ].join('\n');
+
+      await this.notifier.sendAlert(
+        `${threshold.nameZh} (${threshold.nameEn}) 快速${direction}预警`,
+        rapidChangeMessage
+      );
+    }
+
+    // Detect approach to threshold (within 5%)
+    const currentValue = this.parseValue(indicator.currentValue);
+    const targetValue = this.parseValue(threshold.targetValue);
+    
+    if (currentValue === null || targetValue === null) return;
+
+    const distanceToThreshold = Math.abs((currentValue - targetValue) / targetValue) * 100;
+    
+    if (distanceToThreshold <= 5) {
+      const thresholdMessage = [
+        `指标: ${threshold.nameZh} (${threshold.nameEn})`,
+        `分类: ${threshold.category}`,
+        `距离临界值: ${distanceToThreshold.toFixed(2)}%`,
+        `原理: ${threshold.principle}`,
+        `当前值: ${indicator.currentValue}`,
+        `目标值: ${threshold.targetValue}`,
+        `时间: ${new Date().toISOString()}`
+      ].join('\n');
+
+      await this.notifier.sendAlert(
+        `${threshold.nameZh} (${threshold.nameEn}) 临界值预警`,
+        thresholdMessage
+      );
     }
   }
 
@@ -320,16 +416,18 @@ export class AnomalyDetectionService {
   }
 
   private formatAnomalyMessage(anomaly: IAnomaly): string {
-    return `
-      ${anomaly.indicator.nameZh} (${anomaly.indicator.nameEn})
-      Type: ${anomaly.type}
-      Severity: ${anomaly.severity}
-      Current Value: ${anomaly.indicator.currentValue}
-      Target Value: ${anomaly.indicator.targetValue || 'N/A'}
-      ${anomaly.details ? `Details: ${anomaly.details}` : ''}
-    `.trim();
+    const lines = [
+      `${anomaly.indicator.nameZh} (${anomaly.indicator.nameEn})`,
+      `Type: ${anomaly.type}`,
+      `Severity: ${anomaly.severity}`,
+      `Current Value: ${anomaly.indicator.currentValue}`,
+      `Target Value: ${anomaly.indicator.targetValue || 'N/A'}`,
+      anomaly.details ? `Details: ${anomaly.details}` : ''
+    ].filter(Boolean);
+
+    return lines.join('\n');
   }
-}
+
   private parseValue(value: number | string): number | null {
     if (typeof value === 'number') return value;
     if (typeof value !== 'string') return null;
@@ -341,108 +439,19 @@ export class AnomalyDetectionService {
     return isNaN(parsedValue) ? null : parsedValue;
   }
 
-  private notifier: Notifier;
-
-  constructor(notifier?: Notifier) {
-    this.notifier = notifier || Notifier.getInstance();
-  }
-
-  public async detectAnomalies(indicator: IIndicator): Promise<boolean> {
-    const threshold = INDICATOR_THRESHOLDS.find(t => t.id === indicator.id);
-    if (!threshold) return false;
-
-    // Convert values to numbers, handling percentage values
-    const currentValue = this.parseValue(indicator.currentValue);
-    const targetValue = this.parseValue(threshold.targetValue);
-
-    if (currentValue === null || targetValue === null) return false;
-
-    let isAnomaly = false;
-    switch (threshold.comparison) {
-      case 'gte':
-        isAnomaly = currentValue >= targetValue;
-        break;
-      case 'lte':
-        isAnomaly = currentValue <= targetValue;
-        break;
-      case 'eq':
-        isAnomaly = Math.abs(currentValue - targetValue) < 0.0001; // Use small epsilon for floating point comparison
-        break;
-    }
-
-    if (isAnomaly) {
-      await this.notifyAnomaly(indicator, threshold);
-    }
-
-    return isAnomaly;
-  }
-
-  public async detectTrends(indicator: IIndicator, history: IIndicatorHistory[]): Promise<void> {
-    if (history.length < 2) return;
-
-    const threshold = INDICATOR_THRESHOLDS.find(t => t.id === indicator.id);
-    if (!threshold) return;
-
-    // Sort history by timestamp in ascending order
-    const sortedHistory = [...history].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-    
-    // Convert and validate values
-    const latestValue = this.parseValue(sortedHistory[sortedHistory.length - 1].value);
-    const previousValue = this.parseValue(sortedHistory[sortedHistory.length - 2].value);
-    
-    if (latestValue === null || previousValue === null) return;
-
-    // Calculate rate of change
-    const rateOfChange = ((latestValue - previousValue) / previousValue) * 100;
-
-    // Detect rapid changes (more than 10% in either direction)
-    if (Math.abs(rateOfChange) > 10) {
-      const direction = rateOfChange > 0 ? '上升' : '下降';
-      await this.notifier.sendAlert(
-        `${threshold.nameZh} (${threshold.nameEn}) 快速${direction}预警`,
-        `指标: ${threshold.nameZh} (${threshold.nameEn})
-分类: ${threshold.category}
-变化: ${Math.abs(rateOfChange).toFixed(2)}%
-原理: ${threshold.principle}
-当前值: ${indicator.currentValue}
-目标值: ${threshold.targetValue}
-时间: ${new Date().toISOString()}`
-      );
-    }
-
-    // Detect approach to threshold (within 5%)
-    const currentValue = this.parseValue(indicator.currentValue);
-    const targetValue = this.parseValue(threshold.targetValue);
-    
-    if (currentValue === null || targetValue === null) return;
-
-    const distanceToThreshold = Math.abs((currentValue - targetValue) / targetValue) * 100;
-    
-    if (distanceToThreshold <= 5) {
-      await this.notifier.sendAlert(
-        `${threshold.nameZh} (${threshold.nameEn}) 临界值预警`,
-        `指标: ${threshold.nameZh} (${threshold.nameEn})
-分类: ${threshold.category}
-距离临界值: ${distanceToThreshold.toFixed(2)}%
-原理: ${threshold.principle}
-当前值: ${indicator.currentValue}
-目标值: ${threshold.targetValue}
-时间: ${new Date().toISOString()}`
-      );
-    }
-  }
-
   private async notifyAnomaly(indicator: IIndicator, threshold: IndicatorThreshold): Promise<void> {
     const title = `${threshold.nameZh} (${threshold.nameEn}) 市场异常预警`;
-    const message = `指标异常预警
-指标名称: ${threshold.nameZh} (${threshold.nameEn})
-指标分类: ${threshold.category}
-指标原理: ${threshold.principle}
-当前数值: ${indicator.currentValue}
-目标数值: ${threshold.targetValue}
-触发条件: ${threshold.comparison === 'gte' ? '>=' : threshold.comparison === 'lte' ? '<=' : '='} ${threshold.targetValue}
-触发时间: ${new Date().toISOString()}`;
+    const messageLines = [
+      '指标异常预警',
+      `指标名称: ${threshold.nameZh} (${threshold.nameEn})`,
+      `指标分类: ${threshold.category}`,
+      `指标原理: ${threshold.principle}`,
+      `当前数值: ${indicator.currentValue}`,
+      `目标数值: ${threshold.targetValue}`,
+      `触发条件: ${threshold.comparison === 'gte' ? '>=' : threshold.comparison === 'lte' ? '<=' : '='} ${threshold.targetValue}`,
+      `触发时间: ${new Date().toISOString()}`
+    ];
 
-    await this.notifier.notifyAll(title, message);
+    await this.notifier.notifyAll(title, messageLines.join('\n'));
   }
 }

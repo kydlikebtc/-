@@ -1,8 +1,6 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import nodemailer from 'nodemailer';
 import logger from './logger';
-import { join } from 'path';
-import { mkdirSync } from 'fs';
 
 interface NotificationResult {
   channel: 'email' | 'dingding' | 'wecom';
@@ -122,9 +120,9 @@ export class Notifier {
       logger.info('DingDing notification sent successfully');
       return { channel: 'dingding', success: true };
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? `${error.message} (${error.response?.status})` 
-        : error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error 
+        ? `${error.message}${(error as any).response?.status ? ` (${(error as any).response.status})` : ''}`
+        : 'Unknown error';
       logger.error('Failed to send DingDing notification:', { error: errorMessage });
       return { channel: 'dingding', success: false, error: errorMessage };
     }
@@ -149,9 +147,9 @@ export class Notifier {
       logger.info('WeCom notification sent successfully');
       return { channel: 'wecom', success: true };
     } catch (error) {
-      const errorMessage = error instanceof AxiosError 
-        ? `${error.message} (${error.response?.status})` 
-        : error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error 
+        ? `${error.message}${(error as any).response?.status ? ` (${(error as any).response.status})` : ''}`
+        : 'Unknown error';
       logger.error('Failed to send WeCom notification:', { error: errorMessage });
       return { channel: 'wecom', success: false, error: errorMessage };
     }
