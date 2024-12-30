@@ -1,6 +1,6 @@
 import { describe, test, expect, jest } from '@jest/globals';
 import { TradingViewProvider } from '../services/dataProviders/TradingViewProvider';
-import { IIndicator } from '../types/indicator';
+// Removed unused import
 import { BlockchainCenterProvider } from '../services/dataProviders/BlockchainCenterProvider';
 import { MicroStrategyProvider } from '../services/dataProviders/MicroStrategyProvider';
 import { PredictionProvider } from '../services/dataProviders/PredictionProvider';

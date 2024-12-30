@@ -35,7 +35,8 @@ export class CoinglassProvider {
         cbi: 0,
         etfNetOutflow: 0,
         etfBtcRatio: 0,
-        annualRate3m: 0
+        annualRate3m: 0,
+        usdtSavingsRate: 0
       };
 
       for (const [key, endpoint] of Object.entries(endpoints)) {

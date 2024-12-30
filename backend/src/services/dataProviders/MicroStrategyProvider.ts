@@ -6,9 +6,9 @@ import { IDataProvider } from '../../types/provider';
 import { IIndicator } from '../../types/indicator';
 
 export class MicroStrategyProvider implements IDataProvider {
-  public transformData(rawData: MicroStrategyRawData): IIndicator[] {
+  public transformData(rawData: MicroStrategyData): IIndicator[] {
     const now = new Date();
-    const costBasis = rawData.totalInvestment / rawData.totalBitcoin;
+    const costBasis = rawData.costBasis;
 
     return [{
       id: 7,

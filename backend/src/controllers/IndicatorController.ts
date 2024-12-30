@@ -3,7 +3,7 @@ import { Indicator } from '../models/Indicator';
 import { IndicatorHistory } from '../models/IndicatorHistory';
 
 export class IndicatorController {
-  async getAllIndicators(req: Request, res: Response) {
+  async getAllIndicators(_req: Request, res: Response) {
     try {
       const indicators = await Indicator.find().sort('id');
       res.json(indicators);
@@ -30,7 +30,7 @@ export class IndicatorController {
     }
   }
 
-  async getTriggeredIndicators(req: Request, res: Response) {
+  async getTriggeredIndicators(_req: Request, res: Response) {
     try {
       const indicators = await Indicator.find({ isTriggered: true });
       res.json(indicators);

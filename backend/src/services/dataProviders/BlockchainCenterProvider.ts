@@ -6,51 +6,36 @@ import { IDataProvider } from '../../types/provider';
 import { IIndicator } from '../../types/indicator';
 
 export class BlockchainCenterProvider implements IDataProvider {
-  public transformData(rawData: BlockchainCenterRawData): IIndicator[] {
+  public transformData(rawData: BlockchainCenterData): IIndicator[] {
     const indicators: IIndicator[] = [];
     const now = new Date();
 
-    if (rawData.nupl !== undefined) {
+    if (rawData.btIndex !== undefined) {
       indicators.push({
         id: 4,
-        nameEn: 'NUPL',
-        nameZh: '净未实现盈亏比率',
-        currentValue: rawData.nupl,
+        nameEn: 'Bitcoin Temperature',
+        nameZh: '比特币温度',
+        currentValue: rawData.btIndex,
         category: 'On-chain',
         updatedAt: now,
-        principle: 'Measures unrealized profit/loss ratio',
-        calculation: '(Market Cap - Realized Cap) / Market Cap',
-        usage: 'Identify market cycle phases',
+        principle: 'Measures market temperature',
+        calculation: 'Composite of various metrics',
+        usage: 'Identify market phases',
         dataSource: 'Blockchain Center'
       });
     }
 
-    if (rawData.rhodl !== undefined) {
+    if (rawData.rainbowChart !== undefined) {
       indicators.push({
         id: 5,
-        nameEn: 'RHODL',
-        nameZh: 'RHODL比率',
-        currentValue: rawData.rhodl,
+        nameEn: 'Rainbow Chart',
+        nameZh: '彩虹图',
+        currentValue: rawData.rainbowChart,
         category: 'On-chain',
         updatedAt: now,
-        principle: 'Compares young and old coin ratios',
-        calculation: 'Realized HODL Ratio',
-        usage: 'Identify accumulation/distribution',
-        dataSource: 'Blockchain Center'
-      });
-    }
-
-    if (rawData.sopr !== undefined) {
-      indicators.push({
-        id: 6,
-        nameEn: 'SOPR',
-        nameZh: '支出产出利润率',
-        currentValue: rawData.sopr,
-        category: 'On-chain',
-        updatedAt: now,
-        principle: 'Measures profit/loss of moved coins',
-        calculation: 'Price sold / Price paid',
-        usage: 'Identify profit-taking behavior',
+        principle: 'Price bands based on logarithmic regression',
+        calculation: 'Log regression of price history',
+        usage: 'Long-term price analysis',
         dataSource: 'Blockchain Center'
       });
     }

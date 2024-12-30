@@ -12,6 +12,16 @@ export interface IIndicator {
   dataSource: string;
 }
 
+export interface IndicatorThreshold {
+  id: number;
+  category: string;
+  nameZh: string;
+  nameEn: string;
+  targetValue: string;
+  comparison: 'gte' | 'lte' | 'eq';
+  principle: string;
+}
+
 export interface IIndicatorHistory {
   indicatorId: number;
   value: number;

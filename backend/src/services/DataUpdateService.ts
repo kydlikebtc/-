@@ -1,6 +1,6 @@
 import { GlassnodeProvider } from './dataProviders/GlassnodeProvider';
 import { AnomalyDetectionService } from './AnomalyDetectionService';
-import { IIndicator, IIndicatorHistory } from '../types/indicator';
+import { IIndicator } from '../types/indicator';
 import { CoinglassProvider } from './dataProviders/CoinglassProvider';
 import { TradingViewProvider } from './dataProviders/TradingViewProvider';
 import { BlockchainCenterProvider } from './dataProviders/BlockchainCenterProvider';
@@ -25,16 +25,6 @@ export class DataUpdateService {
   private blockchainCenterProvider: BlockchainCenterProvider;
   private microStrategyProvider: MicroStrategyProvider;
   private predictionProvider: PredictionProvider;
-
-  constructor() {
-    this.glassnodeProvider = new GlassnodeProvider();
-    this.coinglassProvider = new CoinglassProvider();
-    this.tradingViewProvider = new TradingViewProvider();
-    this.blockchainCenterProvider = new BlockchainCenterProvider();
-    this.microStrategyProvider = new MicroStrategyProvider();
-    this.predictionProvider = new PredictionProvider();
-    this.anomalyDetectionService = new AnomalyDetectionService();
-  }
 
   async updateAllIndicators() {
     try {
@@ -170,8 +160,31 @@ export class DataUpdateService {
       .limit(10);
 
     // Detect anomalies and trends
-    await this.anomalyDetectionService.detectAnomalies(updatedIndicator);
-    await this.anomalyDetectionService.detectTrends(updatedIndicator, history);
+    const indicatorData = updatedIndicator.toObject();
+    const cleanedIndicator: IIndicator = {
+      id: Number(indicatorData._id) || 0,
+      nameEn: indicatorData.nameEn,
+      nameZh: indicatorData.nameZh,
+      currentValue: Number(indicatorData.currentValue),
+      targetValue: Number(indicatorData.targetValue),
+      category: indicatorData.category,
+      updatedAt: indicatorData.updatedAt,
+      principle: indicatorData.principle,
+      calculation: indicatorData.calculation,
+      usage: indicatorData.usage,
+      dataSource: indicatorData.dataSource
+    };
+    await this.anomalyDetectionService.detectAnomalies([cleanedIndicator]);
+    const historyData = history.map(h => {
+      const data = h.toObject();
+      return {
+        indicatorId: Number(data.indicatorId),
+        value: Number(data.value),
+        timestamp: data.timestamp,
+        id: Number(data._id) || 0
+      };
+    });
+    await this.anomalyDetectionService.detectTrends(cleanedIndicator, historyData);
   }
 
   private async saveHistory(
@@ -212,12 +225,19 @@ export class DataUpdateService {
       timestamp: new Date()
     }));
 
+    const predictionHistory = Object.entries(predictionData).map(([key, value]) => ({
+      indicatorId: this.getIndicatorId(key),
+      value,
+      timestamp: new Date()
+    }));
+
     await IndicatorHistory.insertMany([
       ...glassnodeHistory,
       ...coinglassHistory,
       ...tradingViewHistory,
       ...blockchainCenterHistory,
-      ...microStrategyHistory
+      ...microStrategyHistory,
+      ...predictionHistory
     ]);
   }
 
@@ -258,6 +278,6 @@ export class DataUpdateService {
       // MicroStrategy indicators
       costBasis: 1
     };
-    return mapping[key];
+    return (mapping as { [key: string]: number })[key];
   }
 }
