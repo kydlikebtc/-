@@ -42,7 +42,7 @@ const Overview = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="stats-card">
               <h3>已触发指标</h3>
-              <p>{indicators.filter(i => i.currentValue >= i.targetValue).length}</p>
+              <p>{indicators.filter(i => i.currentValue >= (i.targetValue ?? 0)).length}</p>
               <p>共 {indicators.length} 个</p>
             </div>
             <div className="stats-card">
